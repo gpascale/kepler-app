@@ -1,26 +1,58 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { Component } from 'react';
+import { connect } from 'react-redux';
+import KeplerGl from 'kepler.gl';
+import AutoSizer from 'react-virtualized-auto-sizer';
+import Processors from 'kepler.gl/processors';
+import nycTrips from './data/nyc-trips.csv';
+import nycConfig from './data/nyc-config.json';
+import { addDataToMap } from 'kepler.gl/actions';
+
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+const MAPBOX_API_TOKEN = '';
+
+class App extends Component {
+  componentDidMount() {
+    const data = Processors.processCsvData(nycTrips);
+    const dataset = {
+      data,
+      info: {
+        id: 'my_data'
+      }
+    };
+
+    const addDataAction = addDataToMap({ datasets: dataset });
+    setTimeout(() => {
+      this.props.dispatch(addDataAction);
+    }, 1000);
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <header className="App-header">
+          <AutoSizer>
+            {({ width, height }) => {
+              return (
+                <KeplerGl
+                  id="foo"
+                  width={width}
+                  height={height}
+                  mapboxApiAccessToken={MAPBOX_API_TOKEN}
+                />
+              );
+            }}
+          </AutoSizer>
+        </header>
+      </div>
+    );
+  }
 }
 
-export default App;
+const mapStateToProps = state => state;
+const mapDispatchToProps = dispatch => ({ dispatch });
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(App);
